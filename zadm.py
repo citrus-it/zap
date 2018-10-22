@@ -26,14 +26,14 @@ def usage(str = None):
         print(str)
 
     print('''
-Syntax: zadm [-z <zone>] command [options]
+Syntax: zadm command [options]
     list
     show
 
 ''')
     sys.exit(0)
 
-def list_zones(z, args):
+def list_zones(args):
     zones = zone.list()
     if not zones:
         return
@@ -45,16 +45,17 @@ def list_zones(z, args):
     for z in zones:
         print(format.format(z.name, z.brand, z.state))
 
-def show_zone(name, args):
-    if name is None:
+def show_zone(args):
+    try:
+        name = args.pop(0)
+    except IndexError:
         usage('No zone specified.')
-
     z = zone.load(name)
 
     f = "{:<20} {}"
     fr = "{:>20} {}"
     if not args or "name" in args:
-        print(f.format('name', z.name))
+        print(f.format('Name', z.name))
     if not args or "brand" in args:
         print(f.format('Brand (type)', z.brand))
     if not args or "path" in args:
@@ -70,24 +71,32 @@ def show_zone(name, args):
                 print(fr.format('..gateway', n['gw']))
     for a in z.attrs:
         if not args or "attr" in args or "attr." + a['name'] in args:
-            print(f.format(a['name'], a['value']))
+            print(f.format('attr.'+a['name'], a['value']))
 
-def create_zone(name, args):
+def create_zone(args):
+    try:
+        name = args.pop(0)
+    except IndexError:
+        usage('No zone specified.')
     z = zone.create(name, 'sparse')
     #print(z.xmlstring())
     z.save()
 
-def dump_zone(name, args):
+def dump_zone(args):
     """ Debug function to dump parsed zone configuration """
-    if name is None:
+    try:
+        name = args.pop(0)
+    except IndexError:
         usage('No zone specified.')
 
     z = zone.load(name)
     pprint(vars(z))
 
-def rewrite_zone(name, args):
+def rewrite_zone(args):
     """ Internal debug function to load and save a zone """
-    if name is None:
+    try:
+        name = args.pop(0)
+    except IndexError:
         usage('No zone specified.')
 
     z = zone.load(name)
@@ -105,21 +114,17 @@ if __name__ == "__main__":
     import warnings
     warnings.simplefilter('error')
 
-    tzone = None
-
     # Global options handling
 
     try:
-        opts, pargs = getopt.getopt(sys.argv[1:], "z:d",
-            ["debug=", "zone="])
+        opts, pargs = getopt.getopt(sys.argv[1:], "d",
+            ["debug="])
     except getopt.GetoptError as e:
         usage("illegal global option -- {0}".format(e.opt))
 
     for opt, arg in opts:
         if opt == "-d" or opt == "--debug":
             debug = True
-        elif opt == "-z" or opt == "--zone":
-            tzone = arg
 
     cmd = 'list'
     if pargs:
@@ -128,7 +133,7 @@ if __name__ == "__main__":
     if cmd not in cmds: usage()
 
     func = cmds[cmd][0]
-    func(tzone, pargs)
+    func(pargs)
 
 # Vim hints
 # vim:ts=4:sw=4:et:fdm=marker
