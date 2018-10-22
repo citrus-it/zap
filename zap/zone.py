@@ -111,6 +111,15 @@ class Zone(object):
         os.chmod(self.xml, 0o644)
         return True
 
+    def poweroff(self):
+        raise Exception('No poweroff method for this zone brand')
+
+    def reset(self):
+        raise Exception('No reset method for this zone brand')
+
+    def nmi(self):
+        raise Exception('No nmi method for this zone brand')
+
 class ipkgZone(Zone):
     pass
 
@@ -124,7 +133,24 @@ class vmZone(Zone):
     pass
 
 class bhyveZone(vmZone):
-    pass
+    def exists(self):
+        return os.access('/dev/vmm/{}'.format(self.name), os.W_OK)
+
+    def ctl(self, cmd):
+        if not self.exists():
+            print("{} is not running.".format(self.name))
+            return 0
+        subprocess.run(['/usr/sbin/bhyvectl', '--vm={}'.format(self.name), cmd])
+        return 1
+
+    def poweroff(self):
+        self.ctl('--force-poweroff')
+
+    def reset(self):
+        self.ctl('--force-reboot')
+
+    def nmi(self):
+        self.ctl('--inject-nmi')
 
 class kvmZone(vmZone):
     pass

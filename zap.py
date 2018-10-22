@@ -73,38 +73,64 @@ def show_zone(args):
         if not args or "attr" in args or "attr." + a['name'] in args:
             print(f.format('attr.'+a['name'], a['value']))
 
-def create_zone(args):
+def getname(args):
     try:
-        name = args.pop(0)
+        return args.pop(0)
     except IndexError:
         usage('No zone specified.')
+
+def getzone(args):
+    try:
+        return zone.load(getname(args))
+    except:
+        print("Zone load failed")
+
+def create_zone(args):
+    name = getname(args)
     z = zone.create(name, 'sparse')
     #print(z.xmlstring())
     z.save()
 
 def dump_zone(args):
     """ Debug function to dump parsed zone configuration """
-    try:
-        name = args.pop(0)
-    except IndexError:
-        usage('No zone specified.')
-
-    z = zone.load(name)
+    z = getzone(args)
     pprint(vars(z))
 
 def rewrite_zone(args):
     """ Internal debug function to load and save a zone """
-    try:
-        name = args.pop(0)
-    except IndexError:
-        usage('No zone specified.')
-
-    z = zone.load(name)
+    z = getzone(args)
     z.save()
+
+def poweroff_zone(args):
+    z = getzone(args)
+    try:
+        if z.poweroff():
+            print("Powering off {}".format(name))
+    except:
+        print("Power-off is not supported for this type of zone.")
+
+def reset_zone(args):
+    z = getzone(args)
+    try:
+        if z.reset():
+            print("Resetting {}".format(name))
+    except:
+        print("Reset is not supported for this type of zone.")
+
+def nmi_zone(args):
+    z = getzone(args)
+    try:
+        if z.nmi():
+            print("Sending NMI to {}".format(name))
+    except:
+        print("NMI is not supported for this type of zone.")
 
 cmds = {
     "list":         [list_zones],
     "show":         [show_zone],
+    "poweroff":     [poweroff_zone],
+    "reset":        [reset_zone],
+    "nmi":          [nmi_zone],
     "create":       [create_zone],
     "dump":         [dump_zone],
     "_rewrite":     [rewrite_zone],
