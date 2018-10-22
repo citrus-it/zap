@@ -17,7 +17,7 @@
 import os, sys, getopt
 from pprint import pprint
 
-import zadm.zone as zone
+import zap.zone as zone
 
 debug = False
 
@@ -26,7 +26,7 @@ def usage(str = None):
         print(str)
 
     print('''
-Syntax: zadm command [options]
+Syntax: zap <command> [options]
     list
     show
 

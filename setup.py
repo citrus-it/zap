@@ -19,13 +19,13 @@ with open('LICENCE') as f:
     licence = f.read()
 
 setup(
-    name='zadm',
+    name='zap',
     version='0.1.0',
     description='OmniOS zone management',
     long_description=readme,
     author='OmniOS Community Edition (OmniOSce) Association',
     author_email='sa@omniosce.org',
-    url='https://github.com/citrus-it/zadm',
+    url='https://github.com/citrus-it/zap',
     license=licence,
     packages=find_packages(exclude=('tests', 'docs'))
 )

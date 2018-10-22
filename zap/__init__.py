@@ -12,5 +12,5 @@
 
 # Copyright 2018 OmniOS Community Edition (OmniOSce) Association.
 
-from zadm.zone import Zone, ipkgZone, lipkgZone, sparseZone, bhyveZone, kvmZone
+from zap.zone import Zone, ipkgZone, lipkgZone, sparseZone, bhyveZone, kvmZone
 
