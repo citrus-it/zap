@@ -21,18 +21,6 @@ import zap.zone as zone
 
 debug = False
 
-def usage(str = None):
-    if str:
-        print(str)
-
-    print('''
-Syntax: zap <command> [options]
-    list
-    show
-
-''')
-    sys.exit(0)
-
 def list_zones(args):
     zones = zone.list()
     if not zones:
@@ -101,6 +89,30 @@ def rewrite_zone(args):
     z = getzone(args)
     z.save()
 
+def boot_zone(args):
+    z = getzone(args)
+    try:
+        if z.boot():
+            print("Booting {}".format(name))
+    except:
+        print("Boot is not supported for this type of zone.")
+
+def halt_zone(args):
+    z = getzone(args)
+    try:
+        if z.halt():
+            print("Halting {}".format(name))
+    except:
+        print("Halt is not supported for this type of zone.")
+
+def shutdown_zone(args):
+    z = getzone(args)
+    try:
+        if z.shutdown():
+            print("Shutting down {}".format(name))
+    except:
+        print("Shutdown is not supported for this type of zone.")
+
 def poweroff_zone(args):
     z = getzone(args)
     try:
@@ -128,6 +140,9 @@ def nmi_zone(args):
 cmds = {
     "list":         [list_zones],
     "show":         [show_zone],
+    "boot":         [boot_zone],
+    "halt":         [halt_zone],
+    "shutdown":     [shutdown_zone],
     "poweroff":     [poweroff_zone],
     "reset":        [reset_zone],
     "nmi":          [nmi_zone],
@@ -135,6 +150,16 @@ cmds = {
     "dump":         [dump_zone],
     "_rewrite":     [rewrite_zone],
 }
+
+def usage(str = None):
+    if str:
+        print(str)
+
+    print("Syntax: zap <command> [options]")
+    for cmd in cmds.keys():
+        if cmd.startswith('_'): continue
+        print("    {}".format(cmd))
+    sys.exit(0)
 
 if __name__ == "__main__":
     import warnings

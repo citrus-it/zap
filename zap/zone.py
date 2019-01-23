@@ -14,7 +14,7 @@
 
 # Copyright 2018 OmniOS Community Edition (OmniOSce) Association.
 
-import os, sys, subprocess
+import os, sys, subprocess, socket
 from pprint import pprint
 import xml.etree.ElementTree as etree
 
@@ -111,6 +111,20 @@ class Zone(object):
         os.chmod(self.xml, 0o644)
         return True
 
+    def zoneadm(self, cmd):
+        args = ['/usr/sbin/zoneadm', '-z', self.name]
+        args.extend(cmd)
+        subprocess.run(args)
+
+    def boot(self):
+        return self.zoneadm(['boot'])
+
+    def halt(self):
+        return self.zoneadm(['halt'])
+
+    def shutdown(self):
+        return self.zoneadm(['shutdown'])
+
     def poweroff(self):
         raise Exception('No poweroff method for this zone brand')
 
@@ -147,13 +161,34 @@ class bhyveZone(vmZone):
         self.ctl('--force-poweroff')
 
     def reset(self):
-        self.ctl('--force-reboot')
+        self.ctl('--force-reset')
 
     def nmi(self):
         self.ctl('--inject-nmi')
 
 class kvmZone(vmZone):
-    pass
+
+    def sockpath(self):
+        return '{}/root/tmp/vm.monitor'.format(self.zonepath)
+
+    def exists(self):
+        return os.access(self.sockpath(), os.W_OK)
+
+    def ctl(self, cmd):
+        if not self.exists():
+            print("{} is not running.".format(self.name))
+            return 0
+        fd = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        fd.connect(self.sockpath())
+        fd.send(cmd)
+        fd.close()
+
+    def poweroff(self):
+        self.ctl(b"quit\n")
+        self.halt()
+
+    def reset(self):
+        self.ctl(b"system_reset\n")
 
 def load(name, state=None):
     try:
